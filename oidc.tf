@@ -27,6 +27,24 @@ resource "aws_iam_role_policy_attachment" "terraform_permissions" {
   role       = aws_iam_role.github_actions.name
   policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
 }
+resource "aws_iam_role_policy" "manage_own_role" {
+  name = "allow-manage-own-role"
+  role = aws_iam_role.github_actions.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "iam:GetRole",
+        "iam:GetRolePolicy",
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies"
+      ]
+      Resource = aws_iam_role.github_actions.arn
+    }]
+  })
+}
 
 resource "aws_iam_role_policy" "read_oidc_provider" {
   name = "allow-read-oidc-provider"
