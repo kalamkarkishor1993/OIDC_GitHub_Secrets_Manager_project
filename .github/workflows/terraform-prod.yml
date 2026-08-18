@@ -1,0 +1,33 @@
+name: Terraform Prod Deploy
+
+on:
+  push:
+    branches: [prod]
+    paths:
+      - 'environments/prod/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: environments/prod
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_PROD }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-skip-session-tagging: true
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform init
+      - run: terraform plan
+        env:
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD_PROD }}
+      - run: terraform apply -auto-approve
+        env:
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD_PROD }}
